@@ -74,19 +74,18 @@ model VerificationToken {
 }
 
 model Category {
-    id        Int      @id @default(autoincrement())
+    id        String      @id @default(uuid())
     name      String
-    taskId   Int
-
+    Task Task[]
 }
 
 model Task{
-    id        Int      @id @default(autoincrement())
-    name      String
+    id        String      @id @default(uuid())
     description String
-    categoryId Int
+    completed Boolean @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    category    Category?    @relation(fields: [categoryId], references: [id])
+    categoryId  String?
     
-    @@index([name])
 }

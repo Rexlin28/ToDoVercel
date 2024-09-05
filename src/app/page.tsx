@@ -24,22 +24,8 @@ export default  function Home() {
 
   const categories = ['Work', 'Training', 'School', 'House', 'Sex', 'Weed'];
 
-  const addTask = () => {
-    if (newTask.trim() !== '') {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, category: 'Personal' }])
-      setNewTask('')
-    }
-  }
-
-  const toggleTask = (id: number) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ))
-  }
-
-  const deleteTask = (id: number) => {
-    setTasks(tasks.filter(task => task.id !== id))
-  }
+ 
+ 
 
   const filteredTasks = activeCategory === 'All' 
     ? tasks 

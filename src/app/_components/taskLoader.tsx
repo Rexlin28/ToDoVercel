@@ -1,34 +1,42 @@
-'use client'
 
-import { useState } from 'react'
+"use client";
+import { useEffect, useState } from 'react'
 import { PlusCircle, CheckCircle, Circle, Trash2 } from 'lucide-react'
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
+import { db } from '~/server/db'
+import Link from 'next/link'
 
 type Task = {
   id: number
-  text: string
+  description: string
   completed: boolean
-  category: string
 }
 
-export default  function Loader() {
+export default function Loader({currentCategory= 'All'}) {
+
+
+
   const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, text: 'Buy groceries', completed: false, category: 'Personal' },
-    { id: 2, text: 'Finish project report', completed: false, category: 'Work' },
-    { id: 3, text: 'Go for a run', completed: true, category: 'Health' },
+    { id: 1, description: 'Buy groceries', completed: false },
+    { id: 2, description: 'Finish project report', completed: false },
+    { id: 3, description: 'Go for a run', completed: true},
   ])
   const [newTask, setNewTask] = useState('')
-  const [activeCategory, setActiveCategory] = useState('All')
+ 
+  useEffect(() => {
+    async function fetchTasks() {
+      const response = await fetch(`/api/tasks?cate=${currentCategory}`);
+      const data = await response.json();
+      // Assuming your API returns the tasks in a compatible format
+      setTasks(data);
+      console.log(data);
+    }
+    fetchTasks().catch(console.error);
+}, [currentCategory]);
+  
 
   const categories = ['All', 'Personal', 'Work', 'Health']
-
-  const addTask = () => {
-    if (newTask.trim() !== '') {
-      setTasks([...tasks, { id: Date.now(), text: newTask, completed: false, category: 'Personal' }])
-      setNewTask('')
-    }
-  }
 
   const toggleTask = (id: number) => {
     setTasks(tasks.map(task => 
@@ -40,31 +48,32 @@ export default  function Loader() {
     setTasks(tasks.filter(task => task.id !== id))
   }
 
-  const filteredTasks = activeCategory === 'All' 
-    ? tasks 
-    : tasks.filter(task => task.category === activeCategory)
+  const filteredTasks = tasks;
 
     return (
+        
         <div className="flex h-screen bg-gray-100">
+            <h1>{currentCategory}</h1>
           {/* Sidebar */}
-          <div className="w-64 bg-white shadow-md">
+          {/* <div className="w-64 bg-white shadow-md">
             <div className="p-4">
               <h2 className="text-xl font-semibold mb-4">Categories</h2>
               <ul>
                 {categories.map(category => (
                   <li key={category}>
+                    <Link href={`/category/${category}`} >
                     <Button
-                      variant={activeCategory === category ? "default" : "ghost"}
+                      variant={currentCategory === category ? "default" : "ghost"}
                       className="w-full justify-start mb-2"
-                      onClick={() => setActiveCategory(category)}
                     >
                       {category}
                     </Button>
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
-          </div>
+          </div> */}
     
           {/* Main content */}
           <div className="flex-1 p-8">
@@ -79,7 +88,7 @@ export default  function Loader() {
                 placeholder="Add a new task"
                 className="mr-2"
               />
-              <Button onClick={addTask}>
+              <Button>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Task
               </Button>
             </div>
@@ -101,7 +110,7 @@ export default  function Loader() {
                     )}
                   </Button>
                   <span className={`flex-1 ${task.completed ? 'line-through text-gray-500' : ''}`}>
-                    {task.text}
+                    {task.description}
                   </span>
                   <Button
                     variant="ghost"
@@ -118,3 +127,5 @@ export default  function Loader() {
         </div>
       )
 }
+
+
