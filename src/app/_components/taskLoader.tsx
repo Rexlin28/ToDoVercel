@@ -6,9 +6,13 @@ import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { db } from '~/server/db'
 import Link from 'next/link'
+import { api } from '~/trpc/react';
+import { set } from 'zod';
+
+
 
 type Task = {
-  id: number
+  id: string
   description: string
   completed: boolean
 }
@@ -18,37 +22,53 @@ export default function Loader({currentCategory= 'All'}) {
 
 
   const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, description: 'Buy groceries', completed: false },
-    { id: 2, description: 'Finish project report', completed: false },
-    { id: 3, description: 'Go for a run', completed: true},
+    { id: '231edasd', description: 'Buy groceries', completed: false },
+    { id: 'afasd31r', description: 'Finish project report', completed: false },
+    { id: 'asfsa132e', description: 'Go for a run', completed: true},
   ])
-  const [newTask, setNewTask] = useState('')
- 
-  useEffect(() => {
-    async function fetchTasks() {
-      const response = await fetch(`/api/tasks?cate=${currentCategory}`);
-      const data = await response.json();
-      // Assuming your API returns the tasks in a compatible format
-      setTasks(data);
-      console.log(data);
-    }
-    fetchTasks().catch(console.error);
-}, [currentCategory]);
   
+  const [newTask, setNewTask] = useState('');
+ 
+  const response = api.apiRouter.getSomethingFromExternalApi.useQuery({ id: currentCategory})
+  useEffect(()=>{
+    if(response && response.data){
+      console.log(response.data)
+      setTasks(response.data.data);
+    }
+    
+    
+  },[response])
+
 
   const categories = ['All', 'Personal', 'Work', 'Health']
 
-  const toggleTask = (id: number) => {
+  const toggleTask = (id: number ) => {
     setTasks(tasks.map(task => 
       task.id === id ? { ...task, completed: !task.completed } : task
     ))
   }
 
-  const deleteTask = (id: number) => {
+  const deleteTask = async (id: string) => {
+      await deleteTaskMutation.mutateAsync({
+      id: id
+    })
     setTasks(tasks.filter(task => task.id !== id))
   }
 
+  const addTask = async ()=>{
+    await tasknew.mutateAsync({
+      id: currentCategory,
+      task: newTask
+      
+    })
+  }
   const filteredTasks = tasks;
+
+  
+  const tasknew = api.apiRouter.updateUserFromDatabase.useMutation();
+  const deleteTaskMutation = api.apiRouter.deletedTaskFromDatabase.useMutation();
+
+  //setNewTask('')
 
     return (
         
@@ -83,12 +103,13 @@ export default function Loader({currentCategory= 'All'}) {
             <div className="flex mb-4">
               <Input
                 type="text"
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
                 placeholder="Add a new task"
                 className="mr-2"
+                name='task'
+                value = {newTask}
+                onChange={(e)=>setNewTask(e.target.value)}
               />
-              <Button>
+              <Button onClick={addTask}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Task
               </Button>
             </div>
