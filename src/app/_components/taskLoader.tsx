@@ -8,6 +8,7 @@ import { db } from '~/server/db'
 import Link from 'next/link'
 import { api } from '~/trpc/react';
 import { set } from 'zod';
+import Task from '../login/task';
 
 
 
@@ -30,10 +31,11 @@ export default function Loader({currentCategory= 'All'}) {
   const [newTask, setNewTask] = useState('');
  
   const response = api.apiRouter.getSomethingFromExternalApi.useQuery({ id: currentCategory})
+  
   useEffect(()=>{
     if(response && response.data){
       console.log(response.data)
-      setTasks(response.data.data);
+      setTasks(response.data.data ?? []); // en caso de que pues no este el archivo o valga v
     }
     
     
@@ -42,17 +44,21 @@ export default function Loader({currentCategory= 'All'}) {
 
   const categories = ['All', 'Personal', 'Work', 'Health']
 
-  const toggleTask = (id: number ) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ))
-  }
+  const toggleTask = async (id: string ) => {
+      setTasks(await Promise.all(tasks.map(async task => {
+        if(task.id === id){
+          await updateTask(task.id, task.completed);
+        }
+        return task;
+      })));
+    }
 
   const deleteTask = async (id: string) => {
       await deleteTaskMutation.mutateAsync({
       id: id
     })
     setTasks(tasks.filter(task => task.id !== id))
+    await response.refetch();
   }
 
   const addTask = async ()=>{
@@ -61,13 +67,29 @@ export default function Loader({currentCategory= 'All'}) {
       task: newTask
       
     })
+    await response.refetch();
   }
+
+  const updateTask = async(id: string, completed: boolean)=>{
+    await updateCompleteMutation.mutateAsync({
+      id : id,
+      completed: completed
+    })
+  setTasks(tasks.map(task => {
+    if (task.id === id) {
+    return { ...task, completed: !task.completed };
+    }
+    return task;
+  }));
+  }
+
+
   const filteredTasks = tasks;
 
   
   const tasknew = api.apiRouter.updateUserFromDatabase.useMutation();
   const deleteTaskMutation = api.apiRouter.deletedTaskFromDatabase.useMutation();
-
+  const updateCompleteMutation = api.apiRouter.updateCompletedTask.useMutation();
   //setNewTask('')
 
     return (

@@ -2,13 +2,12 @@ import { db } from "~/server/db";
 import Loader from "~/app/_components/taskLoader";
 
 
+export default function House() {
 
-export default function Weed() {
-    
+
     return (
         <div>
-           <Loader currentCategory="Weed"></Loader>
+            <Loader currentCategory="House"></Loader>
         </div>
     );
 }
-

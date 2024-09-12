@@ -22,7 +22,6 @@ export default  function Sex() {
 
     return (
         <div>
-            <h1>SEXOO</h1>
             <Loader currentCategory={"Sex"}/>
         </div>
     );

@@ -27,7 +27,7 @@ export const apiRouter = createTRPCRouter({
         });
         const res = await db.task.findMany({
           where: {
-            categoryId: category.id,
+            categoryId: category?.id,
           },
           select: {
             id: true,
@@ -96,6 +96,29 @@ export const apiRouter = createTRPCRouter({
       })
     }catch(e){
       return {
+        error: new Error("Error"),
+        result: null,
+        message: e
+      }
+    }
+  })
+  ,
+  updateCompletedTask : publicProcedure.input(z.object({
+    id: z.string(),
+    completed: z.boolean()
+  })).mutation(async({input})=>{
+    try{
+      const task = await db.task.update({
+        where:{
+          id: input.id
+        },
+        data:{
+          completed: !input.completed
+        }
+      })
+      
+    }catch(e){
+      return{
         error: new Error("Error"),
         result: null,
         message: e
